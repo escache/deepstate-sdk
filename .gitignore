@@ -1,0 +1,14 @@
+node_modules
+dist
+*.log
+.DS_Store
+.env
+.env.*
+coverage
+
+# SDK notes:
+# - ABIs are pulled from the live Robinhood Chain Blockscout deployment.
+# - Pool/book ID encoding matches the DeepstateV1 pure functions.
+# - Examples use the current mainnet deployment addresses.
+# - The DeepstateV1 entry point is `fill`; there are no separate placeBid/placeAsk functions.
+# - Optional: add a wagmi hooks wrapper once the SDK stabilizes.

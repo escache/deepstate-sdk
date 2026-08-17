@@ -1,0 +1,302 @@
+import { readContract, simulateContract } from 'viem/actions';
+import type { Account, Address, Hash, PublicClient, WalletClient } from 'viem';
+import { deepstateV1Abi } from './abis/DeepstateV1';
+import {
+  buildCancel,
+  buildFill,
+  buildFillRoute,
+  buildFillRouteWithIntegratorFee,
+  buildFillWithIntegratorFee,
+} from './engine';
+import {
+  packOrder as packOrderModule,
+  unpackOrder as unpackOrderModule,
+} from './order';
+import {
+  getBookId as getBookIdModule,
+  getPoolId as getPoolIdModule,
+} from './pool';
+import {
+  buildDistributeRewards,
+  buildDistributeRewardsBatch,
+  buildRegisterClaimant,
+  buildRegisterClaimants,
+} from './rewards';
+import {
+  priceToTick as priceToTickModule,
+  priceToTickWithDecimals as priceToTickWithDecimalsModule,
+  tickToPrice as tickToPriceModule,
+  tickToPriceWithDecimals as tickToPriceWithDecimalsModule,
+} from './tick';
+import type {
+  Addresses,
+  CancelParams,
+  DistributeRewardsParams,
+  FillParams,
+  FillWithIntegratorFeeParams,
+  Hex,
+  IntegratorFee,
+  Order,
+  OrderReference,
+  RewardClaim,
+  VaultBuyFeesParams,
+  VaultDepositParams,
+  VaultRedeemAssetsParams,
+  VaultRedeemValueParams,
+} from './types';
+import {
+  buildBuyFees,
+  buildDeposit,
+  buildRedeemAssets,
+  buildRedeemValue,
+} from './vault';
+
+export class DeepstateClient {
+  constructor(
+    public client: PublicClient | WalletClient,
+    public addresses: Addresses,
+  ) {}
+
+  private get walletClient(): WalletClient {
+    if (!('account' in this.client) || !this.client.account) {
+      throw new Error('Wallet client with a connected account is required');
+    }
+    return this.client as WalletClient;
+  }
+
+  private get account(): Account | Address {
+    return this.walletClient.account!;
+  }
+
+  private get accountAddress(): Address {
+    const account = this.account;
+    return typeof account === 'string' ? account : account.address;
+  }
+
+  // Engine
+
+  async fill(params: FillParams): Promise<Hash> {
+    const call = buildFill(this.addresses.deepstateV1, params);
+    return this.walletClient.writeContract(call as any);
+  }
+
+  async fillWithIntegratorFee(
+    params: FillWithIntegratorFeeParams,
+  ): Promise<Hash> {
+    const call = buildFillWithIntegratorFee(this.addresses.deepstateV1, params);
+    return this.walletClient.writeContract(call as any);
+  }
+
+  async fillRoute(fills: FillParams[]): Promise<Hash> {
+    const call = buildFillRoute(this.addresses.deepstateV1, fills);
+    return this.walletClient.writeContract(call as any);
+  }
+
+  async fillRouteWithIntegratorFee(
+    fills: FillParams[],
+    integratorFee: IntegratorFee,
+  ): Promise<Hash> {
+    const call = buildFillRouteWithIntegratorFee(
+      this.addresses.deepstateV1,
+      fills,
+      integratorFee,
+    );
+    return this.walletClient.writeContract(call as any);
+  }
+
+  async cancel(params: CancelParams): Promise<Hash> {
+    const call = buildCancel(this.addresses.deepstateV1, params);
+    return this.walletClient.writeContract(call as any);
+  }
+
+  async simulateFill(params: FillParams): Promise<Hex> {
+    const { result } = await simulateContract(
+      this.client as PublicClient,
+      {
+        ...buildFill(this.addresses.deepstateV1, params),
+        account: this.accountAddress,
+      } as any,
+    );
+    return result as Hex;
+  }
+
+  async simulateFillRoute(fills: FillParams[]): Promise<Hex[]> {
+    const { result } = await simulateContract(
+      this.client as PublicClient,
+      {
+        ...buildFillRoute(this.addresses.deepstateV1, fills),
+        account: this.accountAddress,
+      } as any,
+    );
+    return result as Hex[];
+  }
+
+  // Rewards
+
+  async registerClaimant(params: OrderReference): Promise<Hash> {
+    const call = buildRegisterClaimant(this.addresses.rewarder, params);
+    return this.walletClient.writeContract(call as any);
+  }
+
+  async registerClaimants(orders: OrderReference[]): Promise<Hash> {
+    const call = buildRegisterClaimants(this.addresses.rewarder, orders);
+    return this.walletClient.writeContract(call as any);
+  }
+
+  async distributeRewards(params: DistributeRewardsParams): Promise<Hash> {
+    const call = buildDistributeRewards(this.addresses.rewarder, params);
+    return this.walletClient.writeContract(call as any);
+  }
+
+  async distributeRewardsBatch(claims: RewardClaim[]): Promise<Hash> {
+    const call = buildDistributeRewardsBatch(this.addresses.rewarder, claims);
+    return this.walletClient.writeContract(call as any);
+  }
+
+  // Vault
+
+  async deposit(
+    assets: bigint,
+    options?: { receiver?: Address; minShares?: bigint },
+  ): Promise<Hash> {
+    const params: VaultDepositParams = {
+      assets,
+      receiver: options?.receiver ?? this.accountAddress,
+      minShares: options?.minShares,
+    };
+    const call = buildDeposit(this.addresses.deepstateVault, params);
+    return this.walletClient.writeContract(call as any);
+  }
+
+  async redeemValue(
+    shares: bigint,
+    options?: { receiver?: Address; owner?: Address },
+  ): Promise<Hash> {
+    const params: VaultRedeemValueParams = {
+      shares,
+      receiver: options?.receiver ?? this.accountAddress,
+      owner: options?.owner ?? this.accountAddress,
+    };
+    const call = buildRedeemValue(this.addresses.deepstateVault, params);
+    return this.walletClient.writeContract(call as any);
+  }
+
+  async redeemAssets(
+    shares: bigint,
+    tokens: Address[],
+    options?: {
+      minimumAmounts?: bigint[];
+      receiver?: Address;
+      owner?: Address;
+    },
+  ): Promise<Hash> {
+    const params: VaultRedeemAssetsParams = {
+      shares,
+      tokens,
+      minimumAmounts:
+        options?.minimumAmounts ?? new Array(tokens.length).fill(0n),
+      receiver: options?.receiver ?? this.accountAddress,
+      owner: options?.owner ?? this.accountAddress,
+    };
+    const call = buildRedeemAssets(this.addresses.deepstateVault, params);
+    return this.walletClient.writeContract(call as any);
+  }
+
+  async buyFees(
+    tokens: Address[],
+    minimumAmounts: bigint[],
+    options?: { receiver?: Address },
+  ): Promise<Hash> {
+    const params: VaultBuyFeesParams = {
+      tokens,
+      minimumAmounts,
+      receiver: options?.receiver ?? this.accountAddress,
+    };
+    const call = buildBuyFees(this.addresses.deepstateVault, params);
+    return this.walletClient.writeContract(call as any);
+  }
+
+  // Helpers
+
+  getPoolId(tokenA: Address, tokenB: Address): Hex {
+    return getPoolIdModule(tokenA, tokenB);
+  }
+
+  getBookId(tokenA: Address, tokenB: Address, epoch: bigint): Hex {
+    return getBookIdModule(tokenA, tokenB, epoch);
+  }
+
+  packOrder(order: Order): Hex {
+    return packOrderModule(order);
+  }
+
+  unpackOrder(packed: Hex, isBid = false): Order {
+    return unpackOrderModule(packed, isBid);
+  }
+
+  priceToTick(price: number): number {
+    return priceToTickModule(price);
+  }
+
+  tickToPrice(tick: number): number {
+    return tickToPriceModule(tick);
+  }
+
+  priceToTickWithDecimals(
+    price: number,
+    decimals0: number,
+    decimals1: number,
+  ): number {
+    return priceToTickWithDecimalsModule(price, decimals0, decimals1);
+  }
+
+  tickToPriceWithDecimals(
+    tick: number,
+    decimals0: number,
+    decimals1: number,
+  ): number {
+    return tickToPriceWithDecimalsModule(tick, decimals0, decimals1);
+  }
+
+  // Read helpers
+
+  async poolEpoch(poolId: Hex): Promise<bigint> {
+    return (await readContract(
+      this.client as PublicClient,
+      {
+        address: this.addresses.deepstateV1,
+        abi: deepstateV1Abi,
+        functionName: 'poolEpoch',
+        args: [poolId],
+      } as any,
+    )) as bigint;
+  }
+
+  async nextNonce(
+    token0: Address,
+    token1: Address,
+    epoch: bigint,
+  ): Promise<number> {
+    return (await readContract(
+      this.client as PublicClient,
+      {
+        address: this.addresses.deepstateV1,
+        abi: deepstateV1Abi,
+        functionName: 'nextNonce',
+        args: [token0, token1, epoch],
+      } as any,
+    )) as number;
+  }
+
+  async activeBookId(token0: Address, token1: Address): Promise<Hex> {
+    return (await readContract(
+      this.client as PublicClient,
+      {
+        address: this.addresses.deepstateV1,
+        abi: deepstateV1Abi,
+        functionName: 'activeBookId',
+        args: [token0, token1],
+      } as any,
+    )) as Hex;
+  }
+}

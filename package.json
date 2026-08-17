@@ -1,0 +1,41 @@
+{
+  "name": "deepstate-sdk",
+  "version": "0.0.1",
+  "description": "TypeScript SDK for interacting with the Deepstate Protocol",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "node scripts/build.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome lint",
+    "format": "biome format --write",
+    "format:check": "biome format",
+    "check": "npm run typecheck && npm run lint && npm run format:check && npm run test",
+    "clean": "rm -rf dist",
+    "watch": "tsup --watch",
+    "pretest": "npm run build",
+    "test": "node --test --test-reporter=spec"
+  },
+  "dependencies": {
+    "viem": "2.54.6"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.9.4",
+    "@types/node": "22.2.0",
+    "tsup": "8.4.0",
+    "typescript": "5.5.4"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
