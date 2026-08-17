@@ -9,6 +9,10 @@
 - `fill` is the combined place/fill entry point on `DeepstateV1`; `placeBid` / `placeAsk` do not exist as separate methods.
 - Incoming `fill` orders must have nonce bits set to zero (`packOrder` defaults to 0). Only resting/cancelled/rewarded orders carry the engine-assigned nonce.
 
+## Repository attribution
+- All commits must be authored and committed by `escache`.
+- Do not add bot co-authors, "Generated with ..." lines, or tool attribution to commits, pull requests, or repository files.
+
 ## Build / check commands
 - `npm install` — install dependencies
 - `npm run typecheck` — run TypeScript type-check
