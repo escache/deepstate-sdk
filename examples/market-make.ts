@@ -57,12 +57,12 @@ async function main() {
   const bidPrice = midPrice * (1 - spread);
   const askPrice = midPrice * (1 + spread);
 
-  const bidTick = client.priceToTickWithDecimals(
+  const bidTick = client.priceToTickFloorWithDecimals(
     bidPrice,
     decimals0,
     decimals1,
   );
-  const askTick = client.priceToTickWithDecimals(
+  const askTick = client.priceToTickCeilWithDecimals(
     askPrice,
     decimals0,
     decimals1,

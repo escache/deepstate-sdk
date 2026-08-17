@@ -45,7 +45,7 @@ const client = new DeepstateClient(walletClient, {
   rewarder: '0xE85ADBC03a6b52a2c9894c1BB525eC883ea156D7',
 });
 
-const tick = client.priceToTickWithDecimals(1.05, 18, 18);
+const tick = client.priceToTickFloorWithDecimals(1.05, 18, 18);
 const packedOrder = client.packOrder({
   tick,
   quantity: 1_000_000_000_000_000_000n,

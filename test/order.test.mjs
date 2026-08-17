@@ -66,4 +66,63 @@ describe('order packing / unpacking', () => {
       /quantity must be a uint160/,
     );
   });
+
+  it('rejects non-integer ticks', () => {
+    assert.throws(
+      () => packOrder({ tick: 100.5, quantity: 100n, isBid: false }),
+      /tick must be an integer/,
+    );
+  });
+
+  it('rejects ticks outside int32 range', () => {
+    assert.throws(
+      () =>
+        packOrder({
+          tick: 2_147_483_648,
+          quantity: 100n,
+          isBid: false,
+        }),
+      /tick must be an int32/,
+    );
+
+    assert.throws(
+      () =>
+        packOrder({
+          tick: -2_147_483_649,
+          quantity: 100n,
+          isBid: false,
+        }),
+      /tick must be an int32/,
+    );
+  });
+
+  it('rejects non-integer or out-of-range nonces', () => {
+    assert.throws(
+      () => packOrder({ tick: 0, quantity: 100n, nonce: 1.5, isBid: false }),
+      /nonce must be an integer/,
+    );
+
+    assert.throws(
+      () =>
+        packOrder({
+          tick: 0,
+          quantity: 100n,
+          nonce: 4_294_967_296,
+          isBid: false,
+        }),
+      /nonce must be a uint32/,
+    );
+
+    assert.throws(
+      () => packOrder({ tick: 0, quantity: 100n, nonce: -1, isBid: false }),
+      /nonce must be a uint32/,
+    );
+  });
+
+  it('rejects invalid packed order hex length', () => {
+    assert.throws(
+      () => unpackOrder('0x1234', true),
+      /packed order must be a 32-byte hex string/,
+    );
+  });
 });

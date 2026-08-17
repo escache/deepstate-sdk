@@ -69,3 +69,27 @@ export function priceToTickFloor(price: number): number {
 export function priceToTickCeil(price: number): number {
   return Math.ceil(priceToTick(price));
 }
+
+/**
+ * Round a human-readable price down to the next valid integer tick,
+ * accounting for token decimals.
+ */
+export function priceToTickFloorWithDecimals(
+  humanPrice: number,
+  decimals0: number,
+  decimals1: number,
+): number {
+  return Math.floor(priceToTickWithDecimals(humanPrice, decimals0, decimals1));
+}
+
+/**
+ * Round a human-readable price up to the next valid integer tick,
+ * accounting for token decimals.
+ */
+export function priceToTickCeilWithDecimals(
+  humanPrice: number,
+  decimals0: number,
+  decimals1: number,
+): number {
+  return Math.ceil(priceToTickWithDecimals(humanPrice, decimals0, decimals1));
+}

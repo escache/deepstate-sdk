@@ -24,6 +24,10 @@ import {
 } from './rewards';
 import {
   priceToTick as priceToTickModule,
+  priceToTickCeil as priceToTickCeilModule,
+  priceToTickCeilWithDecimals as priceToTickCeilWithDecimalsModule,
+  priceToTickFloor as priceToTickFloorModule,
+  priceToTickFloorWithDecimals as priceToTickFloorWithDecimalsModule,
   priceToTickWithDecimals as priceToTickWithDecimalsModule,
   tickToPrice as tickToPriceModule,
   tickToPriceWithDecimals as tickToPriceWithDecimalsModule,
@@ -256,6 +260,30 @@ export class DeepstateClient {
     decimals1: number,
   ): number {
     return tickToPriceWithDecimalsModule(tick, decimals0, decimals1);
+  }
+
+  priceToTickFloor(price: number): number {
+    return priceToTickFloorModule(price);
+  }
+
+  priceToTickCeil(price: number): number {
+    return priceToTickCeilModule(price);
+  }
+
+  priceToTickFloorWithDecimals(
+    price: number,
+    decimals0: number,
+    decimals1: number,
+  ): number {
+    return priceToTickFloorWithDecimalsModule(price, decimals0, decimals1);
+  }
+
+  priceToTickCeilWithDecimals(
+    price: number,
+    decimals0: number,
+    decimals1: number,
+  ): number {
+    return priceToTickCeilWithDecimalsModule(price, decimals0, decimals1);
   }
 
   // Read helpers

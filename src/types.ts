@@ -11,8 +11,10 @@ export interface Addresses {
 }
 
 export interface Order {
+  /** Signed 32-bit integer tick. */
   tick: number;
   quantity: bigint;
+  /** Optional 32-bit unsigned nonce. Defaults to 0. */
   nonce?: number;
   isBid: boolean;
 }

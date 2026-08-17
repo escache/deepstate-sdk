@@ -53,7 +53,7 @@ async function main() {
 
   // Example: place a bid to buy token0 (USDG) using token1 (NVDA).
   const price = 1 / 130; // token1 per token0
-  const tick = client.priceToTickWithDecimals(price, decimals0, decimals1);
+  const tick = client.priceToTickFloorWithDecimals(price, decimals0, decimals1);
 
   // The nonce must be zero for an incoming fill. The engine assigns a nonce
   // only when part of the order rests on the book.
