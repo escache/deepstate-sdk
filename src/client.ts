@@ -1,12 +1,5 @@
 import { readContract, simulateContract } from 'viem/actions';
-import type {
-  Abi,
-  Account,
-  Address,
-  Hash,
-  PublicClient,
-  WalletClient,
-} from 'viem';
+import type { Abi, Account, Address, Hash, WalletClient } from 'viem';
 import { deepstateV1Abi } from './abis/DeepstateV1';
 import {
   buildCancel,
@@ -64,15 +57,15 @@ import {
 
 export class DeepstateClient {
   constructor(
-    public client: PublicClient | WalletClient,
+    public client: WalletClient,
     public addresses: Addresses,
   ) {}
 
   private get walletClient(): WalletClient {
-    if (!('account' in this.client) || !this.client.account) {
+    if (!this.client.account) {
       throw new Error('Wallet client with a connected account is required');
     }
-    return this.client as WalletClient;
+    return this.client;
   }
 
   private get account(): Account | Address {
