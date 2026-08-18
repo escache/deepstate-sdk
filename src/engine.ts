@@ -6,18 +6,26 @@ import type {
   FillWithIntegratorFeeParams,
 } from './types';
 
-type FillArgs = [Address, Address, bigint, Hex, boolean, boolean, boolean];
+type FillArgs = {
+  token0: Address;
+  token1: Address;
+  epoch: bigint;
+  order: Hex;
+  isBid: boolean;
+  noRest: boolean;
+  fillOrKill: boolean;
+};
 
 function toFillArgs(params: FillParams): FillArgs {
-  return [
-    params.token0,
-    params.token1,
-    params.epoch,
-    params.order,
-    params.isBid,
-    params.noRest ?? false,
-    params.fillOrKill ?? false,
-  ];
+  return {
+    token0: params.token0,
+    token1: params.token1,
+    epoch: params.epoch,
+    order: params.order,
+    isBid: params.isBid,
+    noRest: params.noRest ?? false,
+    fillOrKill: params.fillOrKill ?? false,
+  };
 }
 
 export function buildFill(

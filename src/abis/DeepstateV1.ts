@@ -1,6 +1,6 @@
 import type { Abi } from 'viem';
 
-export const deepstateV1Abi: Abi = [
+export const deepstateV1Abi = [
   {
     inputs: [],
     stateMutability: 'nonpayable',
@@ -1148,4 +1148,4 @@ export const deepstateV1Abi: Abi = [
     stateMutability: 'view',
     type: 'function',
   },
-] as unknown as Abi;
+] as const satisfies Abi;

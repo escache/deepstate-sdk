@@ -1,6 +1,6 @@
 import type { Abi } from 'viem';
 
-export const rewarderAbi: Abi = [
+export const rewarderAbi = [
   {
     inputs: [
       {
@@ -999,4 +999,4 @@ export const rewarderAbi: Abi = [
     stateMutability: 'payable',
     type: 'function',
   },
-] as unknown as Abi;
+] as const satisfies Abi;

@@ -14,16 +14,16 @@ export function buildDeposit(
   address: Address;
   abi: typeof deepstateVaultAbi;
   functionName: 'deposit';
-  args: [bigint, Address, bigint?];
+  args: [bigint, Address] | [bigint, Address, bigint];
 } {
   if (!params.receiver) {
     throw new Error('receiver is required');
   }
 
-  const args: [bigint, Address, bigint?] = [params.assets, params.receiver];
-  if (params.minShares !== undefined) {
-    args.push(params.minShares);
-  }
+  const args: [bigint, Address] | [bigint, Address, bigint] =
+    params.minShares !== undefined
+      ? [params.assets, params.receiver, params.minShares]
+      : [params.assets, params.receiver];
 
   return {
     address: contract,

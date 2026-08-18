@@ -30,13 +30,13 @@ export function buildRegisterClaimants(
   address: Address;
   abi: typeof rewarderAbi;
   functionName: 'registerClaimants';
-  args: [[Hex, Hex][]];
+  args: [OrderReference[]];
 } {
   return {
     address: contract,
     abi: rewarderAbi,
     functionName: 'registerClaimants',
-    args: [orders.map((o) => [o.bookId, o.order])],
+    args: [orders],
   };
 }
 
@@ -64,12 +64,12 @@ export function buildDistributeRewardsBatch(
   address: Address;
   abi: typeof rewarderAbi;
   functionName: 'distributeRewardsBatch';
-  args: [[Hex, Hex, Address][]];
+  args: [RewardClaim[]];
 } {
   return {
     address: contract,
     abi: rewarderAbi,
     functionName: 'distributeRewardsBatch',
-    args: [claims.map((c) => [c.bookId, c.order, c.token])],
+    args: [claims],
   };
 }

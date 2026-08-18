@@ -132,15 +132,15 @@ export class DeepstateClient {
       ...buildFill(this.addresses.deepstateV1, params),
       account: this.account,
     });
-    return result as Hex;
+    return result;
   }
 
-  async simulateFillRoute(fills: FillParams[]): Promise<Hex[]> {
+  async simulateFillRoute(fills: FillParams[]): Promise<void> {
     const { result } = await simulateContract(this.client, {
       ...buildFillRoute(this.addresses.deepstateV1, fills),
       account: this.account,
     });
-    return result as Hex[];
+    return result;
   }
 
   // Rewards
@@ -297,12 +297,12 @@ export class DeepstateClient {
   // Read helpers
 
   async poolEpoch(poolId: Hex): Promise<bigint> {
-    return (await readContract(this.client, {
+    return await readContract(this.client, {
       address: this.addresses.deepstateV1,
       abi: deepstateV1Abi,
       functionName: 'poolEpoch',
       args: [poolId],
-    })) as bigint;
+    });
   }
 
   async nextNonce(
@@ -310,20 +310,20 @@ export class DeepstateClient {
     token1: Address,
     epoch: bigint,
   ): Promise<number> {
-    return (await readContract(this.client, {
+    return await readContract(this.client, {
       address: this.addresses.deepstateV1,
       abi: deepstateV1Abi,
       functionName: 'nextNonce',
       args: [token0, token1, epoch],
-    })) as number;
+    });
   }
 
   async activeBookId(token0: Address, token1: Address): Promise<Hex> {
-    return (await readContract(this.client, {
+    return await readContract(this.client, {
       address: this.addresses.deepstateV1,
       abi: deepstateV1Abi,
       functionName: 'activeBookId',
       args: [token0, token1],
-    })) as Hex;
+    });
   }
 }

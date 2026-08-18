@@ -1,6 +1,6 @@
 import type { Abi } from 'viem';
 
-export const deepstateVaultAbi: Abi = [
+export const deepstateVaultAbi = [
   {
     inputs: [
       {
@@ -2027,4 +2027,4 @@ export const deepstateVaultAbi: Abi = [
     stateMutability: 'payable',
     type: 'receive',
   },
-] as unknown as Abi;
+] as const satisfies Abi;
