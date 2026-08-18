@@ -6,7 +6,9 @@ import type {
   FillWithIntegratorFeeParams,
 } from './types';
 
-function toFillArgs(params: FillParams) {
+type FillArgs = [Address, Address, bigint, Hex, boolean, boolean, boolean];
+
+function toFillArgs(params: FillParams): FillArgs {
   return [
     params.token0,
     params.token1,
@@ -18,12 +20,21 @@ function toFillArgs(params: FillParams) {
   ];
 }
 
-export function buildFill(contract: Address, params: FillParams) {
+export function buildFill(
+  contract: Address,
+  params: FillParams,
+): {
+  address: Address;
+  abi: typeof deepstateV1Abi;
+  functionName: 'fill';
+  args: [FillArgs];
+  value?: bigint;
+} {
   return {
     address: contract,
     abi: deepstateV1Abi,
-    functionName: 'fill' as const,
-    args: [toFillArgs(params)] as unknown as [FillParams],
+    functionName: 'fill',
+    args: [toFillArgs(params)],
     value: params.value,
   };
 }
@@ -31,28 +42,43 @@ export function buildFill(contract: Address, params: FillParams) {
 export function buildFillWithIntegratorFee(
   contract: Address,
   params: FillWithIntegratorFeeParams,
-) {
+): {
+  address: Address;
+  abi: typeof deepstateV1Abi;
+  functionName: 'fillWithIntegratorFee';
+  args: [FillArgs, { recipient: Address; bps: number }];
+  value?: bigint;
+} {
   return {
     address: contract,
     abi: deepstateV1Abi,
-    functionName: 'fillWithIntegratorFee' as const,
+    functionName: 'fillWithIntegratorFee',
     args: [
       toFillArgs(params.params),
       {
         recipient: params.integratorFee.recipient,
         bps: params.integratorFee.bps,
       },
-    ] as unknown as [FillParams, { recipient: Address; bps: number }],
+    ],
     value: params.params.value,
   };
 }
 
-export function buildFillRoute(contract: Address, fills: FillParams[]) {
+export function buildFillRoute(
+  contract: Address,
+  fills: FillParams[],
+): {
+  address: Address;
+  abi: typeof deepstateV1Abi;
+  functionName: 'fillRoute';
+  args: [FillArgs[]];
+  value: bigint;
+} {
   return {
     address: contract,
     abi: deepstateV1Abi,
-    functionName: 'fillRoute' as const,
-    args: [fills.map(toFillArgs)] as unknown as [FillParams[]],
+    functionName: 'fillRoute',
+    args: [fills.map(toFillArgs)],
     value: fills.reduce((sum, f) => sum + (f.value ?? 0n), 0n),
   };
 }
@@ -61,29 +87,35 @@ export function buildFillRouteWithIntegratorFee(
   contract: Address,
   fills: FillParams[],
   integratorFee: { recipient: Address; bps: number },
-) {
+): {
+  address: Address;
+  abi: typeof deepstateV1Abi;
+  functionName: 'fillRouteWithIntegratorFee';
+  args: [FillArgs[], { recipient: Address; bps: number }];
+  value: bigint;
+} {
   return {
     address: contract,
     abi: deepstateV1Abi,
-    functionName: 'fillRouteWithIntegratorFee' as const,
-    args: [fills.map(toFillArgs), integratorFee] as unknown as [
-      FillParams[],
-      { recipient: Address; bps: number },
-    ],
+    functionName: 'fillRouteWithIntegratorFee',
+    args: [fills.map(toFillArgs), integratorFee],
     value: fills.reduce((sum, f) => sum + (f.value ?? 0n), 0n),
   };
 }
 
-export function buildCancel(contract: Address, params: CancelParams) {
+export function buildCancel(
+  contract: Address,
+  params: CancelParams,
+): {
+  address: Address;
+  abi: typeof deepstateV1Abi;
+  functionName: 'cancel';
+  args: [Address, Address, bigint, Hex];
+} {
   return {
     address: contract,
     abi: deepstateV1Abi,
-    functionName: 'cancel' as const,
-    args: [
-      params.token0,
-      params.token1,
-      params.epoch,
-      params.order,
-    ] as unknown as [Address, Address, bigint, Hex],
+    functionName: 'cancel',
+    args: [params.token0, params.token1, params.epoch, params.order],
   };
 }

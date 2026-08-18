@@ -9,53 +9,67 @@ import type {
 export function buildRegisterClaimant(
   contract: Address,
   params: OrderReference,
-) {
+): {
+  address: Address;
+  abi: typeof rewarderAbi;
+  functionName: 'registerClaimant';
+  args: [Hex, Hex];
+} {
   return {
     address: contract,
     abi: rewarderAbi,
-    functionName: 'registerClaimant' as const,
-    args: [params.bookId, params.order] as unknown as [Hex, Hex],
+    functionName: 'registerClaimant',
+    args: [params.bookId, params.order],
   };
 }
 
 export function buildRegisterClaimants(
   contract: Address,
   orders: OrderReference[],
-) {
+): {
+  address: Address;
+  abi: typeof rewarderAbi;
+  functionName: 'registerClaimants';
+  args: [[Hex, Hex][]];
+} {
   return {
     address: contract,
     abi: rewarderAbi,
-    functionName: 'registerClaimants' as const,
-    args: [orders.map((o) => [o.bookId, o.order])] as unknown as [[Hex, Hex][]],
+    functionName: 'registerClaimants',
+    args: [orders.map((o) => [o.bookId, o.order])],
   };
 }
 
 export function buildDistributeRewards(
   contract: Address,
   params: DistributeRewardsParams,
-) {
+): {
+  address: Address;
+  abi: typeof rewarderAbi;
+  functionName: 'distributeRewards';
+  args: [Hex, Hex, Address];
+} {
   return {
     address: contract,
     abi: rewarderAbi,
-    functionName: 'distributeRewards' as const,
-    args: [params.bookId, params.order, params.token] as unknown as [
-      Hex,
-      Hex,
-      Address,
-    ],
+    functionName: 'distributeRewards',
+    args: [params.bookId, params.order, params.token],
   };
 }
 
 export function buildDistributeRewardsBatch(
   contract: Address,
   claims: RewardClaim[],
-) {
+): {
+  address: Address;
+  abi: typeof rewarderAbi;
+  functionName: 'distributeRewardsBatch';
+  args: [[Hex, Hex, Address][]];
+} {
   return {
     address: contract,
     abi: rewarderAbi,
-    functionName: 'distributeRewardsBatch' as const,
-    args: [claims.map((c) => [c.bookId, c.order, c.token])] as unknown as [
-      [Hex, Hex, Address][],
-    ],
+    functionName: 'distributeRewardsBatch',
+    args: [claims.map((c) => [c.bookId, c.order, c.token])],
   };
 }

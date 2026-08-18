@@ -7,8 +7,20 @@ import type {
   VaultRedeemValueParams,
 } from './types';
 
-export function buildDeposit(contract: Address, params: VaultDepositParams) {
-  const args: [bigint, Address, bigint?] = [params.assets, params.receiver!];
+export function buildDeposit(
+  contract: Address,
+  params: VaultDepositParams,
+): {
+  address: Address;
+  abi: typeof deepstateVaultAbi;
+  functionName: 'deposit';
+  args: [bigint, Address, bigint?];
+} {
+  if (!params.receiver) {
+    throw new Error('receiver is required');
+  }
+
+  const args: [bigint, Address, bigint?] = [params.assets, params.receiver];
   if (params.minShares !== undefined) {
     args.push(params.minShares);
   }
@@ -16,54 +28,76 @@ export function buildDeposit(contract: Address, params: VaultDepositParams) {
   return {
     address: contract,
     abi: deepstateVaultAbi,
-    functionName: 'deposit' as const,
-    args: args as unknown as [bigint, Address] | [bigint, Address, bigint],
+    functionName: 'deposit',
+    args,
   };
 }
 
 export function buildRedeemValue(
   contract: Address,
   params: VaultRedeemValueParams,
-) {
+): {
+  address: Address;
+  abi: typeof deepstateVaultAbi;
+  functionName: 'redeemValue';
+  args: [bigint, Address, Address];
+} {
+  if (!params.receiver || !params.owner) {
+    throw new Error('receiver and owner are required');
+  }
+
   return {
     address: contract,
     abi: deepstateVaultAbi,
-    functionName: 'redeemValue' as const,
-    args: [params.shares, params.receiver!, params.owner!] as unknown as [
-      bigint,
-      Address,
-      Address,
-    ],
+    functionName: 'redeemValue',
+    args: [params.shares, params.receiver, params.owner],
   };
 }
 
 export function buildRedeemAssets(
   contract: Address,
   params: VaultRedeemAssetsParams,
-) {
+): {
+  address: Address;
+  abi: typeof deepstateVaultAbi;
+  functionName: 'redeemAssets';
+  args: [bigint, Address, Address, Address[], bigint[]];
+} {
+  if (!params.receiver || !params.owner) {
+    throw new Error('receiver and owner are required');
+  }
+
   return {
     address: contract,
     abi: deepstateVaultAbi,
-    functionName: 'redeemAssets' as const,
+    functionName: 'redeemAssets',
     args: [
       params.shares,
-      params.receiver!,
-      params.owner!,
+      params.receiver,
+      params.owner,
       params.tokens,
       params.minimumAmounts ?? new Array(params.tokens.length).fill(0n),
-    ] as unknown as [bigint, Address, Address, Address[], bigint[]],
+    ],
   };
 }
 
-export function buildBuyFees(contract: Address, params: VaultBuyFeesParams) {
+export function buildBuyFees(
+  contract: Address,
+  params: VaultBuyFeesParams,
+): {
+  address: Address;
+  abi: typeof deepstateVaultAbi;
+  functionName: 'buyFees';
+  args: [Address[], bigint[], Address];
+} {
+  if (!params.receiver) {
+    throw new Error('receiver is required');
+  }
+
   return {
     address: contract,
     abi: deepstateVaultAbi,
-    functionName: 'buyFees' as const,
-    args: [
-      params.tokens,
-      params.minimumAmounts,
-      params.receiver!,
-    ] as unknown as [Address[], bigint[], Address],
+    functionName: 'buyFees',
+    args: [params.tokens, params.minimumAmounts, params.receiver],
   };
 }

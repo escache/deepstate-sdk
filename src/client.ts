@@ -1,5 +1,12 @@
 import { readContract, simulateContract } from 'viem/actions';
-import type { Account, Address, Hash, PublicClient, WalletClient } from 'viem';
+import type {
+  Abi,
+  Account,
+  Address,
+  Hash,
+  PublicClient,
+  WalletClient,
+} from 'viem';
 import { deepstateV1Abi } from './abis/DeepstateV1';
 import {
   buildCancel,
@@ -77,23 +84,37 @@ export class DeepstateClient {
     return typeof account === 'string' ? account : account.address;
   }
 
+  private async write(call: {
+    address: Address;
+    abi: Abi;
+    functionName: string;
+    args: readonly unknown[];
+    value?: bigint;
+  }): Promise<Hash> {
+    return this.walletClient.writeContract({
+      ...call,
+      account: this.account,
+      chain: undefined,
+    });
+  }
+
   // Engine
 
   async fill(params: FillParams): Promise<Hash> {
     const call = buildFill(this.addresses.deepstateV1, params);
-    return this.walletClient.writeContract(call as any);
+    return this.write(call);
   }
 
   async fillWithIntegratorFee(
     params: FillWithIntegratorFeeParams,
   ): Promise<Hash> {
     const call = buildFillWithIntegratorFee(this.addresses.deepstateV1, params);
-    return this.walletClient.writeContract(call as any);
+    return this.write(call);
   }
 
   async fillRoute(fills: FillParams[]): Promise<Hash> {
     const call = buildFillRoute(this.addresses.deepstateV1, fills);
-    return this.walletClient.writeContract(call as any);
+    return this.write(call);
   }
 
   async fillRouteWithIntegratorFee(
@@ -105,33 +126,27 @@ export class DeepstateClient {
       fills,
       integratorFee,
     );
-    return this.walletClient.writeContract(call as any);
+    return this.write(call);
   }
 
   async cancel(params: CancelParams): Promise<Hash> {
     const call = buildCancel(this.addresses.deepstateV1, params);
-    return this.walletClient.writeContract(call as any);
+    return this.write(call);
   }
 
   async simulateFill(params: FillParams): Promise<Hex> {
-    const { result } = await simulateContract(
-      this.client as PublicClient,
-      {
-        ...buildFill(this.addresses.deepstateV1, params),
-        account: this.accountAddress,
-      } as any,
-    );
+    const { result } = await simulateContract(this.client, {
+      ...buildFill(this.addresses.deepstateV1, params),
+      account: this.account,
+    });
     return result as Hex;
   }
 
   async simulateFillRoute(fills: FillParams[]): Promise<Hex[]> {
-    const { result } = await simulateContract(
-      this.client as PublicClient,
-      {
-        ...buildFillRoute(this.addresses.deepstateV1, fills),
-        account: this.accountAddress,
-      } as any,
-    );
+    const { result } = await simulateContract(this.client, {
+      ...buildFillRoute(this.addresses.deepstateV1, fills),
+      account: this.account,
+    });
     return result as Hex[];
   }
 
@@ -139,22 +154,22 @@ export class DeepstateClient {
 
   async registerClaimant(params: OrderReference): Promise<Hash> {
     const call = buildRegisterClaimant(this.addresses.rewarder, params);
-    return this.walletClient.writeContract(call as any);
+    return this.write(call);
   }
 
   async registerClaimants(orders: OrderReference[]): Promise<Hash> {
     const call = buildRegisterClaimants(this.addresses.rewarder, orders);
-    return this.walletClient.writeContract(call as any);
+    return this.write(call);
   }
 
   async distributeRewards(params: DistributeRewardsParams): Promise<Hash> {
     const call = buildDistributeRewards(this.addresses.rewarder, params);
-    return this.walletClient.writeContract(call as any);
+    return this.write(call);
   }
 
   async distributeRewardsBatch(claims: RewardClaim[]): Promise<Hash> {
     const call = buildDistributeRewardsBatch(this.addresses.rewarder, claims);
-    return this.walletClient.writeContract(call as any);
+    return this.write(call);
   }
 
   // Vault
@@ -169,7 +184,7 @@ export class DeepstateClient {
       minShares: options?.minShares,
     };
     const call = buildDeposit(this.addresses.deepstateVault, params);
-    return this.walletClient.writeContract(call as any);
+    return this.write(call);
   }
 
   async redeemValue(
@@ -182,7 +197,7 @@ export class DeepstateClient {
       owner: options?.owner ?? this.accountAddress,
     };
     const call = buildRedeemValue(this.addresses.deepstateVault, params);
-    return this.walletClient.writeContract(call as any);
+    return this.write(call);
   }
 
   async redeemAssets(
@@ -203,7 +218,7 @@ export class DeepstateClient {
       owner: options?.owner ?? this.accountAddress,
     };
     const call = buildRedeemAssets(this.addresses.deepstateVault, params);
-    return this.walletClient.writeContract(call as any);
+    return this.write(call);
   }
 
   async buyFees(
@@ -217,7 +232,7 @@ export class DeepstateClient {
       receiver: options?.receiver ?? this.accountAddress,
     };
     const call = buildBuyFees(this.addresses.deepstateVault, params);
-    return this.walletClient.writeContract(call as any);
+    return this.write(call);
   }
 
   // Helpers
@@ -289,15 +304,12 @@ export class DeepstateClient {
   // Read helpers
 
   async poolEpoch(poolId: Hex): Promise<bigint> {
-    return (await readContract(
-      this.client as PublicClient,
-      {
-        address: this.addresses.deepstateV1,
-        abi: deepstateV1Abi,
-        functionName: 'poolEpoch',
-        args: [poolId],
-      } as any,
-    )) as bigint;
+    return (await readContract(this.client, {
+      address: this.addresses.deepstateV1,
+      abi: deepstateV1Abi,
+      functionName: 'poolEpoch',
+      args: [poolId],
+    })) as bigint;
   }
 
   async nextNonce(
@@ -305,26 +317,20 @@ export class DeepstateClient {
     token1: Address,
     epoch: bigint,
   ): Promise<number> {
-    return (await readContract(
-      this.client as PublicClient,
-      {
-        address: this.addresses.deepstateV1,
-        abi: deepstateV1Abi,
-        functionName: 'nextNonce',
-        args: [token0, token1, epoch],
-      } as any,
-    )) as number;
+    return (await readContract(this.client, {
+      address: this.addresses.deepstateV1,
+      abi: deepstateV1Abi,
+      functionName: 'nextNonce',
+      args: [token0, token1, epoch],
+    })) as number;
   }
 
   async activeBookId(token0: Address, token1: Address): Promise<Hex> {
-    return (await readContract(
-      this.client as PublicClient,
-      {
-        address: this.addresses.deepstateV1,
-        abi: deepstateV1Abi,
-        functionName: 'activeBookId',
-        args: [token0, token1],
-      } as any,
-    )) as Hex;
+    return (await readContract(this.client, {
+      address: this.addresses.deepstateV1,
+      abi: deepstateV1Abi,
+      functionName: 'activeBookId',
+      args: [token0, token1],
+    })) as Hex;
   }
 }
